@@ -27,9 +27,15 @@ See `examples/hello_world`.
 
 ## Documentation
 
-- [Supported platforms](docs/supported-platforms.md)
-- [ESP32: this library vs the core's built-in TFLM](docs/esp32.md)
-- [Generating the library](docs/generating.md): layout, regenerating from upstream, testing
+- [Supported platforms](https://github.com/pschatzmann/tflite-micro/wiki/Supported-Platforms)
+- [ESP32: this library vs the core's built-in TFLM](https://github.com/pschatzmann/tflite-micro/wiki/ESP32)
+- [Generating the library](https://github.com/pschatzmann/tflite-micro/wiki/Generating-the-Library): layout, regenerating from upstream, testing
+
+Upstream TFLM has no generated class reference; the headers are the API documentation:
+
+- [Get started with microcontrollers](https://developers.google.com/edge/litert/microcontrollers/get_started): loading a model, registering ops, running inference (some code predates current `main`, e.g. the `MicroInterpreter` constructor no longer takes an error reporter)
+- [Upstream guides](https://github.com/tensorflow/tflite-micro/tree/main/docs): memory management, logging, error handling, profiling, optimized kernels
+- API headers, also in `src/tensorflow/lite/micro/`: [micro_interpreter.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_interpreter.h), [micro_mutable_op_resolver.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_mutable_op_resolver.h)
 
 ## Installation in Arduino
 
@@ -42,7 +48,7 @@ git clone https://github.com/pschatzmann/tflite-micro.git
 
 I recommend to use git because you can easily update to the latest version just by executing the ```git pull``` command in the project folder.
 
-The library needs a board whose core compiles C++17, e.g. Arduino UNO R4 or Raspberry Pi Pico. See [Supported platforms](docs/supported-platforms.md).
+The library needs a board whose core compiles C++17, e.g. Arduino UNO R4 or Raspberry Pi Pico. See [Supported platforms](https://github.com/pschatzmann/tflite-micro/wiki/Supported-Platforms).
 
 
 ## License
