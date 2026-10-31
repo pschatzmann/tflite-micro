@@ -8,10 +8,10 @@ The library in `src/` is generated from upstream; do not edit it by hand.
 |---|---|
 | `src/`, `examples/` | **Generated.** Do not edit by hand; changes are overwritten. |
 | `library.properties` | **Generated** from `scripts/templates/library.properties.in`. |
-| `scripts/templates/` | Hand-written files copied into the library: `TensorFlowLite.h`, `system_setup.*`, `debug_log.cpp`, `micro_time.cpp`, `examples/hello_world/hello_world.ino`. |
-| `scripts/` | What you run or edit. Run: `generate-docker.sh`, `test-compile-docker.sh`. Edit: `config.env` (`UPSTREAM_REF`, `TARGET`, `OPTIMIZED_KERNEL_DIR`), `MANIFEST.ini` (files to add or remove and `sed` patches), `platforms.txt` (boards to compile), `cores.txt` (cores in the test image). |
-| `scripts/tools/` | Utilities used by the scripts, not run directly: `generate.sh`, `test-compile.sh` (container entrypoints), `create_tflm_arduino.py`, `transform_source.py`, `fix_arduino_subfolders.py`. |
-| `scripts/docker/` | `Dockerfile` (generator) and `Dockerfile.test` (compile tests with pinned cores). |
+| `scripts/templates/` | Hand-written files copied into the library: `TensorFlowLite.h`, `system_setup.*`, `debug_log.cpp`, `micro_time.cpp`, and the `hello_world` sketch (stored as `hello_world.ino.in`, because the Library Manager lint rejects sketches outside `examples/`). |
+| `scripts/` | What you run or edit. Run: `generate-docker.sh`, `test-compile.sh`. Edit: `config.env` (`UPSTREAM_REF`, `TARGET`, `OPTIMIZED_KERNEL_DIR`), `MANIFEST.ini` (files to add or remove and `sed` patches), `platforms.txt` (boards to compile). |
+| `scripts/tools/` | Utilities used by the scripts, not run directly: `generate.sh` (container entrypoint), `create_tflm_arduino.py`, `transform_source.py`, `fix_arduino_subfolders.py`. |
+| `scripts/docker/` | `Dockerfile` for the generator container. |
 
 ## Regenerating the library
 
@@ -34,10 +34,11 @@ You can also run `scripts/tools/generate.sh` directly on the host. It executes u
 
 ## Testing
 
-Compile `hello_world` for the boards in `scripts/platforms.txt` inside a container with pinned cores:
+Compile `hello_world` for the boards in `scripts/platforms.txt`. This uses the cores installed on your machine, with `arduino-cli`:
 
 ```bash
-scripts/test-compile-docker.sh
+scripts/test-compile.sh          # all boards in platforms.txt
+scripts/test-compile.sh -s       # skip boards whose core is not installed
 ```
 
 ## When upstream changes

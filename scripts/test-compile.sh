@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 # Compiles an example sketch of this library for every board in platforms.txt.
 #
-# Normally run through scripts/test-compile-docker.sh.
-# Usage: scripts/tools/test-compile.sh [-e example] [-p platforms_file] [-s]
+# Usage: scripts/test-compile.sh [-e example] [-p platforms_file] [-s]
 #   -e  example name under examples/ (default: hello_world)
 #   -p  file with one FQBN per line (default: scripts/platforms.txt)
 #   -s  skip boards whose core is not installed instead of failing
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="${SCRIPT_DIR}/../.."
+ROOT_DIR="${SCRIPT_DIR}/.."
 EXAMPLE=hello_world
-PLATFORMS="${ROOT_DIR}/scripts/platforms.txt"
+PLATFORMS="${SCRIPT_DIR}/platforms.txt"
 SKIP_MISSING=0
 
 while getopts "e:p:s" opt; do

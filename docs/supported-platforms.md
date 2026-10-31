@@ -12,7 +12,7 @@ TFLM requires **C++17**: current upstream uses features such as `auto` template 
 | `arduino:samd` | gnu++11 | **Does not build** (same errors) |
 | AVR cores | gnu++11 or older | Not supported (compiler too old, and models do not fit in memory) |
 
-To test another board, add its FQBN to `scripts/platforms.txt`, its core to `scripts/cores.txt`, and its board index URL to `scripts/docker/Dockerfile.test`. Boards also need enough flash and RAM for the model you use; `hello_world` takes about 86 KB of flash and 12 KB of RAM on the Pico.
+To test another board, install its core with `arduino-cli` and add its FQBN to `scripts/platforms.txt`. Boards also need enough flash and RAM for the model you use; `hello_world` takes about 86 KB of flash and 12 KB of RAM on the Pico.
 
 ## Optimized kernels
 

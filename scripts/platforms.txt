@@ -11,6 +11,5 @@ rp2040:rp2040:rpipico
 # Cortex-M with DSP and GCC 12+: these two build the CMSIS-NN kernels
 rp2040:rp2040:rpipico2
 arduino:zephyr_main:nano33ble
-# Larger; also add the core to cores.txt and its board index URL to
-# scripts/docker/Dockerfile.test before enabling.
+# Larger core (about 3 GB); install it first with arduino-cli:
 # esp32:esp32:esp32s3
