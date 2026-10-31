@@ -1,0 +1,74 @@
+name: Weekly sync
+
+# Regenerates the library from the current tensorflow/tflite-micro main, compiles
+# hello_world for the boards in scripts/platforms.txt and, only if that passes
+# and the generated files changed, commits the result to main with the date.
+
+on:
+  schedule:
+    - cron: '0 4 * * 6' # every Saturday, 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Generate the library from upstream
+        run: |
+          scripts/generate-docker.sh 2>&1 | tee "$RUNNER_TEMP/generate.log"
+          sha=$(sed -n 's/^Generated from tflite-micro //p' "$RUNNER_TEMP/generate.log" | tail -1)
+          test -n "$sha"
+          echo "UPSTREAM_SHA=$sha" >> "$GITHUB_ENV"
+          if grep -q 'Unknown path' "$RUNNER_TEMP/generate.log"; then
+            echo "::warning::A MANIFEST.ini patch no longer matches upstream (Unknown path)"
+          fi
+
+      - name: Set up arduino-cli
+        uses: arduino/setup-arduino-cli@v2
+        with:
+          version: 1.4.1
+
+      - name: Cache Arduino cores
+        uses: actions/cache@v4
+        with:
+          path: ~/.arduino15
+          key: arduino-cores-${{ hashFiles('.github/workflows/weekly-sync.yml') }}
+
+      - name: Install Arduino cores
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls \
+            https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+          arduino-cli core update-index
+          arduino-cli core install \
+            arduino:renesas_uno@1.6.0 \
+            arduino:zephyr_main@1.1.0 \
+            rp2040:rp2040@6.3.1
+
+      - name: Compile hello_world for all boards
+        run: scripts/test-compile.sh
+
+      - name: Commit the changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git status --short | tail -20
+          if git diff --cached --quiet; then
+            echo "Generated files are unchanged, nothing to commit"
+            exit 0
+          fi
+          git commit -m "Sync tflite-micro ${UPSTREAM_SHA} ($(date -u +%Y-%m-%d))"
+          git push origin HEAD:main

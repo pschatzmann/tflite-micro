@@ -45,6 +45,16 @@ scripts/test-compile.sh -s       # skip boards whose core is not installed
 
 Upstream moves files around. If generation reports `Unknown path` for a patch, update the matching section in `scripts/MANIFEST.ini`.
 
+## Weekly sync (GitHub Actions)
+
+`.github/workflows/weekly-sync.yml` runs every Saturday at 04:00 UTC, and on demand from the Actions tab (`workflow_dispatch`):
+
+1. Regenerates the library from the current tflite-micro `main` with `scripts/generate-docker.sh`.
+2. Installs the Arduino cores and compiles `hello_world` for the boards in `scripts/platforms.txt` with `scripts/test-compile.sh`.
+3. Only if everything compiled and the generated files changed, commits to `main` with the message `Sync tflite-micro <upstream sha> (<date>)`.
+
+If a step fails, nothing is committed and GitHub reports the failed run. The ESP32 boards are not in the default test list, so they are not checked by this workflow. The core versions it installs are pinned in the workflow file and must match the boards in `scripts/platforms.txt`.
+
 ## Origin and license
 
 The generation tools (`create_tflm_arduino.py`, `transform_source.py`, `fix_arduino_subfolders.py` in `scripts/tools/`, and `scripts/MANIFEST.ini`) are adapted from [tflite-micro-arduino-examples](https://github.com/tensorflow/tflite-micro-arduino-examples), © The TensorFlow Authors. Everything is licensed under Apache-2.0; see [LICENSE](../LICENSE).
