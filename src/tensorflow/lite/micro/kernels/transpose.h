@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_TRANSPOSE_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_TRANSPOSE_H_
 
+#include "tensorflow/lite/micro/arduino_cmsis_nn_config.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 

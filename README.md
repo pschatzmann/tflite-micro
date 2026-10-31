@@ -1,5 +1,8 @@
 # tflite-micro
 
+[![Arduino Library](https://img.shields.io/badge/Arduino-Library-blue.svg)](https://www.arduino.cc/reference/en/libraries/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
 [TensorFlow Lite for Microcontrollers](https://github.com/tensorflow/tflite-micro) (TFLM) as an Arduino library, generated automatically from the upstream repository.
 
 The official Arduino package, [tflite-micro-arduino-examples](https://github.com/tensorflow/tflite-micro-arduino-examples), was archived in February 2025. This repo keeps the pipeline that builds the library from upstream.
@@ -25,7 +28,6 @@ See `examples/hello_world`.
 - [Supported platforms](docs/supported-platforms.md)
 - [ESP32: this library vs the core's built-in TFLM](docs/esp32.md)
 - [Generating the library](docs/generating.md): layout, regenerating from upstream, testing
-- [Future improvements](docs/future-improvements.md)
 
 ## Installation in Arduino
 

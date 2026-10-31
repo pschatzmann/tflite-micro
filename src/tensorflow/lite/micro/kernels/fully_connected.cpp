@@ -1,3 +1,5 @@
+#include "tensorflow/lite/micro/arduino_cmsis_nn_config.h"
+#if !defined(CMSIS_NN)
 /* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -363,3 +365,4 @@ TFLMRegistration Register_FULLY_CONNECTED() {
 
 }  // namespace micro
 }  // namespace tflite
+#endif  // !defined(CMSIS_NN)

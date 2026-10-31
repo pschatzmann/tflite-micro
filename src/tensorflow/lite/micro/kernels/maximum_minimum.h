@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_MAXIMUM_MINIMUM_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_MAXIMUM_MINIMUM_H_
 
+#include "tensorflow/lite/micro/arduino_cmsis_nn_config.h"
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"

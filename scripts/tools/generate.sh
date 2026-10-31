@@ -32,6 +32,28 @@ OUTPUT_DIR="${TEMP_DIR}/tflm_arduino"
     "${BASE_DIR}"
 )
 
+# Merge optimized kernel variants into the reference tree. Each variant tree is
+# generated separately; only its kernel files and library are copied over.
+for variant in ${MERGE_KERNEL_DIRS:-}; do
+  VARIANT_DIR="${TEMP_DIR}/tflm_tree_${variant}"
+  (
+    cd "${TEMP_DIR}/tflite-micro"
+    python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+      --makefile_options="TARGET=${TARGET} OPTIMIZED_KERNEL_DIR=${variant} TARGET_ARCH=${TARGET_ARCH}" \
+      "${VARIANT_DIR}"
+  )
+  case "${variant}" in
+    cmsis_nn)
+      cp -a "${VARIANT_DIR}/tensorflow/lite/micro/kernels/cmsis_nn" "${BASE_DIR}/tensorflow/lite/micro/kernels/"
+      cp -a "${VARIANT_DIR}/third_party/cmsis_nn" "${BASE_DIR}/third_party/"
+      ;;
+    *)
+      echo "Unsupported MERGE_KERNEL_DIRS entry: ${variant}" >&2
+      exit 1
+      ;;
+  esac
+done
+
 # Stage the hand-written overlay; create_tflm_arduino.py resolves repo paths
 # relative to the current directory.
 STAGE_DIR="${TEMP_DIR}/overlay"

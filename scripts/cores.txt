@@ -2,3 +2,4 @@
 # One <core>@<version> per line; keep in sync with the boards in platforms.txt.
 arduino:renesas_uno@1.6.0
 rp2040:rp2040@6.3.1
+arduino:zephyr_main@1.1.0

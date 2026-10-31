@@ -8,6 +8,9 @@
 # Smallest core that builds (~0.5 GB with the Arm toolchain):
 arduino:renesas_uno:unor4wifi
 rp2040:rp2040:rpipico
+# Cortex-M with DSP and GCC 12+: these two build the CMSIS-NN kernels
+rp2040:rp2040:rpipico2
+arduino:zephyr_main:nano33ble
 # Larger; also add the core to cores.txt and its board index URL to
 # scripts/docker/Dockerfile.test before enabling.
 # esp32:esp32:esp32s3
