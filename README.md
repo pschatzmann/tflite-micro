@@ -32,6 +32,7 @@ See `examples/hello_world`.
 - [Supported platforms](https://github.com/pschatzmann/tflite-micro/wiki/Supported-Platforms)
 - [ESP32: this library vs the core's built-in TFLM](https://github.com/pschatzmann/tflite-micro/wiki/ESP32)
 - [Generating the library](https://github.com/pschatzmann/tflite-micro/wiki/Generating-the-Library): layout, regenerating from upstream, testing
+- [Other Arduino libraries](https://github.com/pschatzmann/tflite-micro/wiki/Other-Arduino-Libraries): existing TFLM libraries for Arduino and how they compare
 
 Upstream TFLM has no generated class reference; the headers are the API documentation:
 
