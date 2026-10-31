@@ -1,0 +1,10 @@
+name=tflite-micro
+version=0.0.0
+author=TensorFlow Authors
+maintainer=Phil Schatzmann <phil.schatzmann@gmail.com>
+sentence=TensorFlow Lite for Microcontrollers (TFLM) packaged as an Arduino library.
+paragraph=Run TensorFlow Lite models on microcontrollers. Generated automatically from tensorflow/tflite-micro @UPSTREAM_REF@.
+category=Data Processing
+url=https://github.com/tensorflow/tflite-micro
+architectures=*
+includes=TensorFlowLite.h

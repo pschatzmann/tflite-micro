@@ -1,0 +1,13 @@
+# Boards used by scripts/test-compile.sh, one FQBN per line.
+# Lines starting with # and blank lines are ignored.
+# Optional second column: extra arduino-cli compile flags are not supported;
+# use the FQBN options syntax (e.g. board:opt=value) instead.
+# TFLM needs C++17, so the core must compile with -std=gnu++17 or newer.
+# arduino:renesas_uno sets gnu++17 (builds); arduino:mbed_nano (gnu++14) and
+# arduino:samd (gnu++11) do not.
+# Smallest core that builds (~0.5 GB with the Arm toolchain):
+arduino:renesas_uno:unor4wifi
+rp2040:rp2040:rpipico
+# Larger; also add the core to cores.txt and its board index URL to
+# scripts/docker/Dockerfile.test before enabling.
+# esp32:esp32:esp32s3
