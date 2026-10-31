@@ -5,6 +5,8 @@
 
 [TensorFlow Lite for Microcontrollers](https://github.com/tensorflow/tflite-micro) (TFLM) as an Arduino library, generated automatically from the upstream repository.
 
+In 2024 Google renamed TensorFlow Lite to [LiteRT](https://developers.google.com/edge/litert), and TFLM is now documented there as [LiteRT for Microcontrollers](https://developers.google.com/edge/litert/microcontrollers/overview). The code itself has kept its old names: the repository is still `tensorflow/tflite-micro`, the C++ namespace is still `tflite`, and models are the same `.tflite` files the LiteRT converter produces.
+
 The official Arduino package, [tflite-micro-arduino-examples](https://github.com/tensorflow/tflite-micro-arduino-examples), was archived in February 2025. This repo keeps the pipeline that builds the library from upstream.
 
 Upstream does not publish versions, so neither does this library: it tracks the latest upstream `main` and is regenerated weekly by GitHub Actions.
