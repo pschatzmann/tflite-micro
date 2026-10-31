@@ -7,6 +7,8 @@
 
 The official Arduino package, [tflite-micro-arduino-examples](https://github.com/tensorflow/tflite-micro-arduino-examples), was archived in February 2025. This repo keeps the pipeline that builds the library from upstream.
 
+Upstream does not publish versions, so neither does this library: it tracks the latest upstream `main` and is regenerated weekly by GitHub Actions.
+
 
 ## Usage
 

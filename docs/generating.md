@@ -2,6 +2,8 @@
 
 The library in `src/` is generated from upstream; do not edit it by hand.
 
+Upstream tflite-micro does not publish releases or version tags, so this library has no versions of its own either: it tracks the latest upstream `main` and is kept up to date by the [weekly sync](#weekly-sync-github-actions). The upstream commit it was generated from is recorded in `library.properties` (`paragraph`) and in the sync commit message.
+
 ## Repository layout
 
 | Path | Purpose |
@@ -9,7 +11,7 @@ The library in `src/` is generated from upstream; do not edit it by hand.
 | `src/`, `examples/` | **Generated.** Do not edit by hand; changes are overwritten. |
 | `library.properties` | **Generated** from `scripts/templates/library.properties.in`. |
 | `scripts/templates/` | Hand-written files copied into the library: `TensorFlowLite.h`, `system_setup.*`, `debug_log.cpp`, `micro_time.cpp`, and the `hello_world` sketch (stored as `hello_world.ino.in`, because the Library Manager lint rejects sketches outside `examples/`). |
-| `scripts/` | What you run or edit. Run: `generate-docker.sh`, `test-compile.sh`. Edit: `config.env` (`UPSTREAM_REF`, `TARGET`, `OPTIMIZED_KERNEL_DIR`), `MANIFEST.ini` (files to add or remove and `sed` patches), `platforms.txt` (boards to compile). |
+| `scripts/` | What you run or edit. Run: `generate-docker.sh`, `test-compile.sh`. Edit: `config.env` (`TARGET`, `OPTIMIZED_KERNEL_DIR`, `MERGE_KERNEL_DIRS`), `MANIFEST.ini` (files to add or remove and `sed` patches), `platforms.txt` (boards to compile). |
 | `scripts/tools/` | Utilities used by the scripts, not run directly: `generate.sh` (container entrypoint), `create_tflm_arduino.py`, `transform_source.py`, `fix_arduino_subfolders.py`. |
 | `scripts/docker/` | `Dockerfile` for the generator container. |
 
@@ -21,11 +23,11 @@ Requires Docker and network access.
 scripts/generate-docker.sh
 ```
 
-To pin a different upstream version, edit `UPSTREAM_REF` in `scripts/config.env` (tag, branch or commit) first. Set `KEEP_TEMP=1` to keep the working tree for inspection.
+This always generates from the latest upstream `main` (`UPSTREAM_REF` in `scripts/config.env`). Only change `UPSTREAM_REF` temporarily, e.g. to a commit for debugging; the weekly sync uses whatever is committed there. Set `KEEP_TEMP=1` to keep the working tree for inspection.
 
 The pipeline:
 
-1. Shallow-clone `tensorflow/tflite-micro` at `UPSTREAM_REF`.
+1. Shallow-clone `tensorflow/tflite-micro` at `UPSTREAM_REF` (`main`).
 2. Run upstream's `create_tflm_tree.py` to produce a flat source tree.
 3. Run `create_tflm_arduino.py` with `MANIFEST.ini` to rename files to `.cpp`, rewrite includes, apply patches and overlay the `scripts/templates/` files.
 4. Move `signal/` under `src/` and write `src/` and `library.properties` into this repo.
