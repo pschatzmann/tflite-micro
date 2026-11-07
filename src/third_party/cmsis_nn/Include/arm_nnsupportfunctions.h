@@ -21,8 +21,8 @@
  * Title:        arm_nnsupportfunctions.h
  * Description:  Public header file of support functions for CMSIS NN Library
  *
- * $Date:        17 October 2026
- * $Revision:    V.22.11.1
+ * $Date:        02 November 2026
+ * $Revision:    V.22.14.0
  *
  * Target :  Arm(R) M-Profile Architecture
  * -------------------------------------------------------------------- */
@@ -53,7 +53,7 @@ extern "C" {
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define CLAMP(x, h, l) MAX(MIN((x), (h)), (l))
-#define ARM_NN_ROUND_UP(x, multiple) ((((x) + (multiple) - 1) / (multiple)) * (multiple))
+#define ARM_NN_ROUND_UP(x, multiple) (((((x) + (multiple)) - 1) / (multiple)) * (multiple))
 #define REDUCE_MULTIPLIER(_mult) ((_mult < 0x7FFF0000) ? ((_mult + (1 << 15)) >> 16) : 0x7FFF)
 
 // Number of channels processed in a block for DW Conv with Int8 weights(MVE)
@@ -156,6 +156,60 @@ __STATIC_INLINE bool arm_nn_is_convolve_1_x_n(const cmsis_nn_conv_params *conv_p
 {
     return (input_dims->h == 1) && (conv_params->dilation.w == 1) && (filter_dims->h == 1) &&
         ((conv_params->stride.w * input_dims->c) % 4 == 0) && (input_dims->c == filter_dims->c);
+}
+
+/**
+ * @brief Check if convolution parameters are eligible for arm_convolve_1_x_n_s8.
+ * @param[in]   conv_params   Convolution parameters
+ * @param[in]   input_dims    Input dimensions
+ * @param[in]   filter_dims   Filter dimensions
+ * @param[in]   output_dims   Output dimensions
+ * @return      true if parameters are eligible for arm_convolve_1_x_n_s8, false otherwise.
+ */
+__STATIC_INLINE bool arm_nn_is_convolve_1_x_n_s8(const cmsis_nn_conv_params *conv_params,
+                                                 const cmsis_nn_dims *input_dims,
+                                                 const cmsis_nn_dims *filter_dims,
+                                                 const cmsis_nn_dims *output_dims)
+{
+    if (!arm_nn_is_convolve_1_x_n(conv_params, input_dims, filter_dims) || (conv_params->stride.w <= 0) ||
+        !output_dims || (output_dims->h != 1) || (conv_params->padding.h != 0))
+    {
+        return false;
+    }
+
+    const int32_t total_pad = MAX((output_dims->w - 1) * conv_params->stride.w + filter_dims->w - input_dims->w, 0);
+    const int32_t asym_pad = total_pad % 2;
+    return (conv_params->padding.w * 2 + asym_pad == total_pad);
+}
+
+/**
+ * @brief Check if convolution parameters are eligible for arm_convolve_1_x_n_s4.
+ * @param[in]   conv_params   Convolution parameters
+ * @param[in]   input_dims    Input dimensions
+ * @param[in]   filter_dims   Filter dimensions
+ * @param[in]   output_dims   Output dimensions
+ * @return      true if parameters are eligible for arm_convolve_1_x_n_s4, false otherwise.
+ */
+__STATIC_INLINE bool arm_nn_is_convolve_1_x_n_s4(const cmsis_nn_conv_params *conv_params,
+                                                 const cmsis_nn_dims *input_dims,
+                                                 const cmsis_nn_dims *filter_dims,
+                                                 const cmsis_nn_dims *output_dims)
+{
+    if (!arm_nn_is_convolve_1_x_n_s8(conv_params, input_dims, filter_dims, output_dims) || ((input_dims->c % 2) != 0))
+    {
+        return false;
+    }
+
+    const int32_t pad_x = conv_params->padding.w;
+    const int32_t stride_x = conv_params->stride.w;
+    const int32_t output_x = output_dims->w;
+    const int32_t total_pad = MAX((output_x - 1) * stride_x + filter_dims->w - input_dims->w, 0);
+    const int32_t asym_pad = total_pad % 2;
+    const int32_t right_pad_num = pad_x + asym_pad != 0 ? MAX(1, (pad_x + asym_pad + stride_x - 1) / stride_x) : 0;
+    const int32_t left_pad_num = pad_x != 0 ? MAX(1, (pad_x + stride_x - 1) / stride_x) : 0;
+    const int32_t no_pad_num = MAX(output_x - (right_pad_num + left_pad_num), 0);
+
+    return (right_pad_num + no_pad_num + left_pad_num == output_x);
 }
 
 /**
@@ -635,6 +689,31 @@ arm_cmsis_nn_status arm_nn_mat_mult_nt_t_s8(const int8_t *lhs,
                                             const int32_t activation_max,
                                             const int32_t row_address_offset,
                                             const int32_t lhs_cols_offset);
+
+#if ARM_NN_ENABLE_AOT
+/**
+ * @brief MVE s8 matrix multiplication using bias with the LHS-offset contribution already included
+ *
+ * Each required effective_bias entry is bias + lhs_offset * sum(RHS row), so this function does not reduce RHS rows
+ * at runtime. RHS must be packed as [ceil(rhs_rows/4), ceil(rhs_cols/16), 4, 16], with zero padding.
+ * Dimensions and LHS/output strides remain logical; bias and quantization arrays have rhs_rows entries.
+ * Returns ARM_CMSIS_NN_NO_IMPL_ERROR when MVE is unavailable.
+ */
+arm_cmsis_nn_status arm_nn_mat_mult_nt_t_s8_packed(const int8_t *lhs,
+                                                   const int8_t *rhs,
+                                                   const int32_t *effective_bias,
+                                                   int8_t *dst,
+                                                   const int32_t *dst_multipliers,
+                                                   const int32_t *dst_shifts,
+                                                   const int32_t lhs_rows,
+                                                   const int32_t rhs_rows,
+                                                   const int32_t rhs_cols,
+                                                   const int32_t dst_offset,
+                                                   const int32_t activation_min,
+                                                   const int32_t activation_max,
+                                                   const int32_t row_address_offset,
+                                                   const int32_t lhs_cols_offset);
+#endif
 
 /**
  * @brief General Matrix-multiplication function with per-channel requantization and int16 input (LHS) and output.
@@ -1772,6 +1851,26 @@ __STATIC_FORCEINLINE void arm_memcpy_q15(int16_t *__RESTRICT dst, const int16_t 
 
 #if defined(ARM_MATH_MVEI)
 /**
+ * @brief           vld2q_s8() that also accepts pointers that are not 4-byte aligned.
+ * @param[in]       ptr         Pointer to 32 int8 values
+ * @param[in]       is_aligned  True if ptr is 4-byte aligned, as required by VLD2x
+ * @return          De-interleaved even (val[0]) and odd (val[1]) elements
+ *
+ */
+__STATIC_FORCEINLINE int8x16x2_t arm_nn_vld2q_s8(const int8_t *ptr, const bool is_aligned)
+{
+    if (is_aligned)
+    {
+        return vld2q_s8(ptr);
+    }
+    const uint8x16_t even_offsets = vidupq_u8((uint32_t)0, 2);
+    int8x16x2_t res;
+    res.val[0] = vldrbq_gather_offset_s8(ptr, even_offsets);
+    res.val[1] = vldrbq_gather_offset_s8(ptr + 1, even_offsets);
+    return res;
+}
+
+/**
  * @brief           Vector saturating doubling high multiply returning high half.
  * @param[in]       m1        Multiplicand
  * @param[in]       m2        Multiplier
@@ -1817,7 +1916,7 @@ __STATIC_FORCEINLINE int32x4_t arm_requantize_mve(const int32x4_t val, const int
     const int32x4_t left_shift_dup = vdupq_n_s32(left_shift);
     const int32x4_t right_shift_dup = vdupq_n_s32(right_shift);
 
-    int32x4_t result = vqdmulhq_n_s32(vshlq_s32(val, left_shift_dup), multiplier);
+    int32x4_t result = vqdmulhq_n_s32(vqshlq_s32(val, left_shift_dup), multiplier);
     result = vrshlq_s32(result, right_shift_dup);
 
     return result;
@@ -1888,7 +1987,7 @@ __STATIC_FORCEINLINE int32x4_t arm_requantize_mve_pred(const int32x4_t val,
     const int32x4_t left_shift_dup = vdupq_x_n_s32(left_shift, p);
     const int32x4_t right_shift_dup = vdupq_x_n_s32(right_shift, p);
 
-    int32x4_t result = vqrdmulhq_m_n_s32(v_zero, vshlq_m_s32(v_zero, val, left_shift_dup, p), multiplier, p);
+    int32x4_t result = vqdmulhq_m_n_s32(v_zero, vqshlq_m_s32(v_zero, val, left_shift_dup, p), multiplier, p);
     result = vrshlq_m_s32(v_zero, result, right_shift_dup, p);
 
     return result;
@@ -1924,7 +2023,7 @@ __STATIC_FORCEINLINE int32x4_t arm_requantize_mve_32x4(const int32x4_t val,
     const int32x4_t right_shift = vminq_s32(vdupq_n_s32(-1), shift);
     const int32x4_t left_shift = vqsubq_s32(shift, right_shift);
 
-    int32x4_t result = vqdmulhq_s32(vshlq_s32(val, left_shift), multiplier);
+    int32x4_t result = vqdmulhq_s32(vqshlq_s32(val, left_shift), multiplier);
     result = vrshlq_s32(result, right_shift);
 
     return result;

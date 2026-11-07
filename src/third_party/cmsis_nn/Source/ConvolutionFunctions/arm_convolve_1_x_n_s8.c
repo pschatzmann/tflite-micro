@@ -1,7 +1,7 @@
 #include "tensorflow/lite/micro/arduino_cmsis_nn_config.h"
 #if defined(CMSIS_NN)
 /*
- * SPDX-FileCopyrightText: Copyright 2010-2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+ * SPDX-FileCopyrightText: Copyright 2010-2024, 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -23,8 +23,8 @@
  * Title:        arm_convolve_1_x_n_s8.c
  * Description:  s8 version of 1xN convolution using symmetric quantization.
  *
- * $Date:        04 November 2024
- * $Revision:    V.3.6.1
+ * $Date:        02 November 2026
+ * $Revision:    V.3.7.1
  *
  * Target :  Arm(R) M-Profile Architecture
  *
@@ -59,10 +59,23 @@ arm_cmsis_nn_status arm_convolve_1_x_n_s8(const cmsis_nn_context *ctx,
                                           const cmsis_nn_dims *output_dims,
                                           int8_t *output_data)
 {
+#if ARM_NN_ENABLE_AOT
+    if (conv_params->filter_format || conv_params->bias_format)
+    {
+        if (conv_params->filter_format != ARM_NN_FILTER_FORMAT_PACKED_4X16 ||
+            conv_params->bias_format != ARM_NN_BIAS_FORMAT_EFFECTIVE || bias_data == NULL)
+        {
+            return ARM_CMSIS_NN_ARG_ERROR;
+        }
+        return ARM_CMSIS_NN_NO_IMPL_ERROR;
+    }
+#endif
+
     arm_cmsis_nn_status status = ARM_CMSIS_NN_SUCCESS;
 
     /* The wrapper API is the ultimate reference for argument check */
-    if ((input_dims->h != 1) || conv_params->dilation.w != 1 || ctx->buf == NULL || conv_params->stride.w == 0 ||
+    if ((input_dims->h != 1) || (output_dims->h != 1) || (filter_dims->h != 1) || (conv_params->padding.h != 0) ||
+        conv_params->dilation.w != 1 || ctx->buf == NULL || conv_params->stride.w == 0 ||
         (conv_params->stride.w * input_dims->c % 4 != 0))
     {
         return ARM_CMSIS_NN_ARG_ERROR;
@@ -79,7 +92,7 @@ arm_cmsis_nn_status arm_convolve_1_x_n_s8(const cmsis_nn_context *ctx,
     const int32_t stride_x = conv_params->stride.w;
 
     // Total pad for dilation of 1
-    const int32_t total_pad = ((output_x - 1) * stride_x + kernel_x - input_x);
+    const int32_t total_pad = MAX((output_x - 1) * stride_x + kernel_x - input_x, 0);
     const int32_t asym_pad = total_pad % 2;
 
     if (pad_x * 2 + asym_pad != total_pad)
@@ -92,7 +105,7 @@ arm_cmsis_nn_status arm_convolve_1_x_n_s8(const cmsis_nn_context *ctx,
     const int32_t no_pad_num = MAX(output_x - (right_pad_num + left_pad_num), 0);
 
     const int32_t pad_size_left = pad_x * input_ch;
-    const int32_t pad_size_right = asym_pad ? right_pad_num * input_ch : pad_size_left;
+    const int32_t pad_size_right = (pad_x + asym_pad) * input_ch;
 
     const int32_t rhs_cols = kernel_x * input_ch;
     const int32_t rhs_rows = output_dims->c;
@@ -114,8 +127,8 @@ arm_cmsis_nn_status arm_convolve_1_x_n_s8(const cmsis_nn_context *ctx,
                                output_data);
     }
 
-    const uint32_t num_elem_left = kernel_x * input_ch;
-    const uint32_t num_elem_right = num_elem_left - input_ch;
+    const uint32_t num_elem_left = MIN(kernel_x, input_x) * input_ch;
+    const uint32_t num_elem_right = MAX(input_x - (stride_x * (left_pad_num + no_pad_num) - pad_x), 0) * input_ch;
 
     for (int i_batch = 0; i_batch < input_dims->n; i_batch++)
     {
