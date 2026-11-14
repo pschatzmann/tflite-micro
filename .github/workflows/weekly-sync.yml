@@ -48,7 +48,9 @@ jobs:
 
       - name: Install Arduino cores
         run: |
-          arduino-cli config init
+          # --overwrite: the cached ~/.arduino15 (or setup-arduino-cli) may already
+          # have a config file, and plain `config init` fails when it exists.
+          arduino-cli config init --overwrite
           arduino-cli config add board_manager.additional_urls \
             https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
           arduino-cli core update-index
